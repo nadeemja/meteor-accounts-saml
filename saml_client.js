@@ -7,7 +7,7 @@ if (!Accounts.saml) {
 Accounts.saml.initiateLogin = function (options, callback, dimensions) {
     // default dimensions that worked well for facebook and google
     var popup = openCenteredPopup(
-        Meteor.absoluteUrl("_saml/authorize/" + options.provider + "/" + options.credentialToken), (dimensions && dimensions.width) || 650, (dimensions && dimensions.height) || 500);
+        Meteor.absoluteUrl("_saml/authorize/openam/" + options.credentialToken), (dimensions && dimensions.width) || 650, (dimensions && dimensions.height) || 500);
 
     var checkPopupOpen = setInterval(function () {
         try {
@@ -91,7 +91,7 @@ Meteor.loginWithSaml = function (options, callback) {
 };
 
 Meteor.logoutWithSaml = function (options, callback) {
-    //Accounts.saml.idpInitiatedSLO(options, callback); 
+    //Accounts.saml.idpInitiatedSLO(options, callback);
     Meteor.call("samlLogout", options.provider, function (err, result) {
         console.log("LOC " + result);
                 // A nasty bounce: 'result' has the SAML LogoutRequest but we need a proper 302 to redirected from the server.

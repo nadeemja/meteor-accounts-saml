@@ -1,11 +1,12 @@
 if (!Accounts.saml) {
     Accounts.saml = {};
 }
-
 var Fiber = Npm.require('fibers');
 //var connect = Npm.require('connect');
 var bodyParser = Npm.require('body-parser')
 RoutePolicy.declare('/_saml/', 'network');
+
+const Feide = new Mongo.Collection('feide');
 
 Meteor.methods({
     samlLogout: function(provider) {
@@ -67,7 +68,8 @@ Accounts.registerLoginHandler(function(loginRequest) {
     if (!loginRequest.saml || !loginRequest.credentialToken) {
         return undefined;
     }
-    var loginResult = Accounts.saml.retrieveCredential(loginRequest.credentialToken);
+
+    var loginResult = Feide.findOne({credentialToken: loginRequest.credentialToken});
     if (Meteor.settings.debug) {
         console.log("RESULT :" + JSON.stringify(loginResult));
     }
@@ -100,10 +102,14 @@ Accounts.registerLoginHandler(function(loginRequest) {
                };
                localFindStructure = 'profile.' + Meteor.settings.saml[0].localProfileMatchAttribute;
         }
-        var user = Meteor.users.findOne({
-            //profile[Meteor.settings.saml[0].localProfileMatchAttribute]: loginResult.profile.nameID
-            [localFindStructure]: loginResult.profile.nameID
-        });
+        const query = {
+          $or: [{
+            [localFindStructure]: loginResult.profile.eduPersonPrincipalName
+          },{
+            'emails.address': loginResult.profile.eduPersonPrincipalName
+          }]
+        };
+        var user = Meteor.users.findOne(query);
 
         if (!user) {
             if (Meteor.settings.saml[0].dynamicProfile) {
@@ -114,8 +120,7 @@ Accounts.registerLoginHandler(function(loginRequest) {
                     //email: loginResult.profile.email,
                     password: "",
                     username: loginResult.profile.nameID,
-                    [profileOrEmail]:  profileOrEmailValue
-
+                    [profileOrEmail]:  profileOrEmailValue,
                     //[Meteor.settings.saml[0].localProfileMatchAttribute]: loginResult.profile[Meteor.settings.saml[0].localProfileMatchAttribute]
                 });
                 user = Meteor.users.findOne({
@@ -358,6 +363,7 @@ middleware = function(req, res, next) {
                     Accounts.saml._loginResultForCredentialToken[credentialToken] = {
                         profile: profile
                     };
+                    Feide.insert({credentialToken, profile})
                     closePopup(res);
                 });
                 break;

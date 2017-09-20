@@ -7,7 +7,7 @@ Package.describe({
 
 Package.on_use(function (api) {
     api.versionsFrom('1.4.4.1');
-    api.use(['routepolicy','webapp','underscore', 'service-configuration'], 'server');
+    api.use(['routepolicy','webapp','underscore', 'mongo', 'service-configuration'], 'server');
     api.use(['http','accounts-base','random'], ['client', 'server']);
 
     api.add_files(['saml_server.js','saml_utils.js'], 'server');
