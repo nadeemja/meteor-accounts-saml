@@ -117,14 +117,11 @@ Accounts.registerLoginHandler(function(loginRequest) {
                     console.log("User not found. Will dynamically create one with '" + Meteor.settings.saml[0].localProfileMatchAttribute + "' = " + loginResult.profile[Meteor.settings.saml[0].localProfileMatchAttribute])
                 }
                 Accounts.createUser({
-                    //email: loginResult.profile.email,
-                    password: "",
-                    username: loginResult.profile.nameID,
+                    email: loginResult.profile.eduPersonPrincipalName,
                     [profileOrEmail]:  profileOrEmailValue,
-                    //[Meteor.settings.saml[0].localProfileMatchAttribute]: loginResult.profile[Meteor.settings.saml[0].localProfileMatchAttribute]
                 });
                 user = Meteor.users.findOne({
-                    "username": loginResult.profile.nameID
+                    "emails.address": loginResult.profile.eduPersonPrincipalName
                 });
                 // update user profile w attrs from SAML Attr Satement
                 //Meteor.user.update(user, )
